@@ -183,7 +183,7 @@ class Assistant:
                     self.rcalendar.add_reminder(rtype, title, description, date)
             elif command.__contains__('show'):
                 self.read('Here are your upcoming reminders: ')
-                self.rcalendar.check_reminders(3)
+                self.rcalendar.check_upcoming_reminders(3)
         else:
             self.read(f'{command} is either a wrong command or not available')
 

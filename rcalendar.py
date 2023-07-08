@@ -64,9 +64,14 @@ class Calendar:
         new_reminder = Reminder(determine_type(rtype), title, description, date, time)
         self._reminders.append(new_reminder)
 
-    def check_reminders(self, number_of_months: int):
+    def check_upcoming_reminders(self, number_of_months: int):
         date = datetime.date.today()
         z = 0
+
+        # ignoring past reminders
+        while self._reminders[z].date.month != date.month:
+            z += 1
+
         for i in range(number_of_months):
             current_month = date.month
             current_month_string = month_to_string[current_month]
