@@ -4,6 +4,7 @@ import datetime as dt
 from exceptions.calendarex import InvalidType
 from typing import List
 
+
 # TODO
 # Notifications about reminders
 # Create JSON database that stores reminders, or use Firebase
@@ -82,8 +83,11 @@ class Calendar:
                       f'{reminder.date.year:02}\n')
                 z += 1
 
-                # TODO
-                if z >= self._reminders.__sizeof__() or self._reminders[z].date.month != current_month:
+                if z < self._reminders.__sizeof__():
+                    if self._reminders[z].date.month != current_month:
+                        break
+                    continue
+                else:
                     break
 
             # getting the next month, if the month is = 12, change the year
