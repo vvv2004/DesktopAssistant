@@ -10,6 +10,13 @@ Creating application that can assist in various tasks:
 
 Some useful tools:
     -pyttsx3, speech recognition, Twilio
+
+
+For now the features that need more work, but are their bases are done are:
+- Open/Close apps: TODO - list of apps
+- weather: TODO - more functionality
+- reminders: TODO - delete reminders, migrate, scheduling
+- database: TODO - create Firebase db
 """
 
 import assistant

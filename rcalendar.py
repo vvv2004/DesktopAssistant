@@ -8,7 +8,9 @@ from typing import List
 # TODO
 # Notifications about reminders
 # Create JSON database that stores reminders, or use Firebase
-# Ignore past reminders
+# Migrate reminders
+# Use schedule with Firebase
+# Delete past reminders
 
 
 class ReminderType(Enum):
@@ -54,7 +56,7 @@ month_to_string = [None, 'January', 'February', 'March',
 class Calendar:
     def __init__(self):
         self._reminders: List[Reminder] = []
-        self.past_reminders = []  # TODO
+        self._past_reminders: List[Reminder] = []  # TODO
 
     def order_reminders(self):
         self._reminders.sort(key=lambda x: x.date)
@@ -63,6 +65,10 @@ class Calendar:
                      date: datetime.date, time=None):
         new_reminder = Reminder(determine_type(rtype), title, description, date, time)
         self._reminders.append(new_reminder)
+
+    def check_all_reminders(self):
+        # The database will delete reminders that are more than a year old
+        first_month = self._past_reminders[0].date.month
 
     def check_upcoming_reminders(self, number_of_months: int):
         date = datetime.date.today()
