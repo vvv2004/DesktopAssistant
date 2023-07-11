@@ -20,3 +20,11 @@ class Database:
             return doc.to_dict()
         else:
             return None
+
+    def get_collection(self, collection):
+        docs = self.db.collection(collection).strean()
+
+        return {
+            collection: docs
+        }
+
