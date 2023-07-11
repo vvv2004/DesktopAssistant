@@ -96,7 +96,7 @@ class Assistant:
         self.engine = t2s.init()  # Initializing the text to speech engine
         self.engine.setProperty('rate', 150)  # Setting the rate of talk /150 words per minute/
         self.engine.setProperty('volume', 0.8)  # Setting the volume /80%/
-        # self.engine.setProperty('voice', voice_id)  # Setting the voice with voiceID
+        self.engine.setProperty('voice', voice_id)  # Setting the voice with voiceID
         self.weather = Weather()  # Weather assistant init
         self.rcalendar = rcalendar.Calendar()
 
@@ -189,7 +189,15 @@ class Assistant:
 
     # reading a message with the tts engine
     def read(self, message: str):
-        self.engine.say(message)
+        fichmi = ''
+
+        if message.__contains__('FEACMe'):
+            fichmi = message
+            fichmi = fichmi.replace('FEACMe', 'fichmy')
+            self.engine.say(fichmi)
+        else:
+            self.engine.say(message)
+
         print(message)
         self.engine.runAndWait()
 
