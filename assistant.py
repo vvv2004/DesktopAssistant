@@ -31,6 +31,10 @@ name = 'FEACMe'
 voice_id = 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0'
 
 
+# ==============================================UTIL FUNCTIONS==========================================================
+
+# TODO - Weather handling method
+
 # A function that opens app that is in the dictionary
 def _open_app(application):
     try:
@@ -49,30 +53,10 @@ def _close_app(application):
         print(f'Error: {e}')
 
 
-def _tell_time():
-    time = datetime.datetime.now()
-
-    return f'{time.hour}:{time.minute}'
-
-
-def _tell_date():
-    date = datetime.datetime.now()
-    day = date.day
-    month = date.month
-
-    suffix = 'th'
-    if day == 1:
-        suffix = 'st'
-    elif day == 2:
-        suffix = 'nd'
-    elif day == 3:
-        suffix = 'rd'
-
-    return f'{day}{suffix} of {month_dict[month]}'
-
-
+# A function to process date format
 def _process_date(data: str, processed_data='date'):
-    # format = dd:mm:yyyy
+    # input format = dd.mm.yyyy
+    # output format = date object
     if processed_data == 'date':
         datas = data.split('.')
         day = int(datas[0])
@@ -80,7 +64,8 @@ def _process_date(data: str, processed_data='date'):
         year = int(datas[2])
 
         return datetime.date(year, month, day)
-    # format = hh:mm
+    # input format = hh:mm
+    # output format = time object
     elif processed_data == 'time':
         datas = data.split(':')
         hour = int(datas[0])
@@ -88,6 +73,8 @@ def _process_date(data: str, processed_data='date'):
 
         return datetime.time(hour, minutes)
 
+
+# =================================================ASSISTANT CLASS======================================================
 
 class Assistant:
     def __init__(self):
@@ -99,6 +86,84 @@ class Assistant:
         self.engine.setProperty('voice', voice_id)  # Setting the voice with voiceID
         self.weather = Weather()  # Weather assistant init
         self.rcalendar = rcalendar.Calendar()
+
+    # =============================================RUN FUNCTIONS========================================================
+
+    # running the assistant
+    def run(self):
+        user_input = input('Waiting for input: ')
+        default_input = user_input
+
+        while True:
+            self.process_command(default_input)
+            user_input = input('Assistant waiting: ')
+
+            if user_input == 'x':
+                break
+            elif user_input == 'change listen':
+                default_input = 'listening'
+            elif user_input == 'change text':
+                default_input = 'text'
+
+    # executing commands
+    def _execute_command(self, command: str):
+        command_words = command.split()
+
+        if command.__contains__('open'):
+            app_index = command_words.index('open') + 1
+            self._app_handler(open=True, app=command_words[app_index])
+
+        elif command.__contains__('close'):
+            app_index = command_words.index('close') + 1
+            self._app_handler(open=False, app=command_words[app_index])
+
+        elif command.__contains__('porn'):
+            self.read('pervert.')
+
+        elif command.__contains__('repeat'):
+            start_index = command_words.index('repeat') + 1
+            words = command_words[start_index:]
+            self._repeat(words)
+
+        elif command.__contains__('weather'):
+            if command.__contains__('now'):
+                self.read(self.weather.get_current())
+            else:
+                self.read(self.weather.get_today())
+
+        elif command.__contains__('time'):
+            self._tell_time()
+
+        elif command.__contains__('date') or command.__contains__('today'):
+            self._tell_date()
+
+        elif command.__contains__('reminder'):
+            self.read('Be more specific. Should I create or show reminders?')
+
+            if command.__contains__('new') or command.__contains__('create'):
+                self._reminder_handler(new=True)
+
+            elif command.__contains__('show'):
+                self._reminder_handler(show=True)
+
+        else:
+            self.read(f'{command} is either a wrong command or not available')
+
+    # reading a message with the tts engine
+    def read(self, message: str):
+        fichmi = ''
+
+        if message.__contains__('FEACMe'):
+            fichmi = message
+            fichmi = fichmi.replace('FEACMe', 'fichmy')
+            self.engine.say(fichmi)
+        else:
+            self.engine.say(message)
+
+        print(message)
+        self.engine.runAndWait()
+
+    # ===============================================INPUT PROCESSING===================================================
 
     # function that listens to the mic
     def listen_microphone(self):
@@ -131,91 +196,77 @@ class Assistant:
 
         self._execute_command(text.lower())
 
-    # executing command
-    def _execute_command(self, command: str):
-        command_words = command.split()
+    # ==============================================COMMAND METHODS===================================================
 
-        if command.__contains__('open'):
-            app_index = command_words.index('open') + 1
-            _open_app(command_words[app_index])
+    def _reminder_handler(self, **kwargs):
+        if kwargs.get('new', False) is True:
+            self._create_new_reminder()
+        elif kwargs.get('show', False) is True:
+            self._show_reminders()
 
-            message = f'OK! Opening {command_words[app_index]}'
-            self.read(message)
-        elif command.__contains__('close'):
-            app_index = command_words.index('close') + 1
-            _close_app(command_words[app_index])
+    def _app_handler(self, **kwargs):
+        app = kwargs['app']
 
-            message = f'OK! Closing {command_words[app_index]}'
-            self.read(message)
-        elif command.__contains__('porn'):
-            self.read('pervert.')
-        elif command.__contains__('repeat'):
-            self.read('OK \n')
+        if kwargs['open'] is True:
+            _open_app(app)
+            message = f'OK! Opening {app}'
 
-            start_index = command_words.index('repeat') + 1
-            message = command_words[start_index:]
-            self.read(' '.join(message))
-        elif command.__contains__('weather'):
-            if command.__contains__('now'):
-                self.read(self.weather.get_current())
-            else:
-                self.read(self.weather.get_today())
-        elif command.__contains__('time'):
-            message = f'It\'s {_tell_time()}'
-            self.read(message)
-        elif command.__contains__('date') or command.__contains__('today'):
-            message = f'It\'s the {_tell_date()}'
-            self.read(message)
-        elif command.__contains__('reminder'):
-            if command.__contains__('new') or command.__contains__('create'):
-                self.read('Fill the boxes manually to create a reminder')
-
-                rtype = input('Input the type: ')
-                title = input('Reminder title: ')
-                description = input('Reminder description: ')
-                date = _process_date(input('Set date /follow the format: (dd.mm.yyyy)/: '))
-                is_time_needed = input('Is time needed(y/n): ')
-
-                if is_time_needed == 'y':
-                    time = _process_date(input('Set time /follow the format: (hh:mm)/: '), processed_data='time')
-                    self.rcalendar.add_reminder(rtype, title, description, date, time)
-                else:
-                    self.rcalendar.add_reminder(rtype, title, description, date)
-            elif command.__contains__('show'):
-                self.read('Here are your upcoming reminders: ')
-                self.rcalendar.check_upcoming_reminders(3)
         else:
-            self.read(f'{command} is either a wrong command or not available')
+            _close_app(app)
+            message = f'OK! Closing {app}'
 
-    # reading a message with the tts engine
-    def read(self, message: str):
-        fichmi = ''
+        self.read(message)
 
-        if message.__contains__('FEACMe'):
-            fichmi = message
-            fichmi = fichmi.replace('FEACMe', 'fichmy')
-            self.engine.say(fichmi)
+    def _repeat(self, words_to_repeat):
+        self.read('OK \n')
+
+        message = words_to_repeat
+        self.read(' '.join(message))
+
+    # ===============================================HELPER METHODS===================================================
+
+    def _create_new_reminder(self):
+        self.read('Fill the boxes manually to create a reminder')
+
+        rtype = input('Input the type: ')
+        title = input('Reminder title: ')
+        description = input('Reminder description: ')
+        date = _process_date(input('Set date /follow the format: (dd.mm.yyyy)/: '))
+        is_time_needed = input('Is time needed(y/n): ')
+
+        if is_time_needed == 'y':
+            time = _process_date(input('Set time /follow the format: (hh:mm)/: '), processed_data='time')
+            self.rcalendar.add_reminder(rtype, title, description, date, time)
         else:
-            self.engine.say(message)
+            self.rcalendar.add_reminder(rtype, title, description, date)
 
-        print(message)
-        self.engine.runAndWait()
+    def _show_reminders(self):
+        self.read('Here are your upcoming reminders: ')
+        self.rcalendar.check_upcoming_reminders(3)
 
-    # running the assistant
-    def run(self):
-        user_input = input('Waiting for input: ')
-        default_input = user_input
+    # A function to tell the date
+    def _tell_date(self):
+        date = datetime.datetime.now()
+        day = date.day
+        month = date.month
 
-        while True:
-            self.process_command(default_input)
-            user_input = input('Assistant waiting: ')
+        suffix = 'th'
+        if day == 1:
+            suffix = 'st'
+        elif day == 2:
+            suffix = 'nd'
+        elif day == 3:
+            suffix = 'rd'
 
-            if user_input == 'x':
-                break
-            elif user_input == 'change listen':
-                default_input = 'listening'
-            elif user_input == 'change text':
-                default_input = 'text'
+        message = f'It\'s the {day}{suffix} of {month_dict[month]}'
+        self.read(message)
+
+    # A function to tell the time
+    def _tell_time(self):
+        time = datetime.datetime.now()
+
+        message = f'It\'s {time.hour}:{time.minute}'
+        self.read(message)
 
 
 class Weather:

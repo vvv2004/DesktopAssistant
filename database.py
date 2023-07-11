@@ -22,11 +22,14 @@ class Database:
             return None
 
     def get_collection(self, collection):
-        docs = self.db.collection(collection).strean()
+        docs = self.db.collection(collection).stream()
 
-        return {
-            collection: docs
-        }
+        if len(docs) == 0:
+            return None
+        else:
+            return {
+                collection: docs
+            }
 
     def delete_from_database(self, collection, identifier):
         self.db.collection(collection).document(identifier).delete()
