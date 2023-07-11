@@ -28,3 +28,9 @@ class Database:
             collection: docs
         }
 
+    def delete_from_database(self, collection, identifier):
+        self.db.collection(collection).document(identifier).delete()
+
+    def delete_field(self, collection, identifier, field):
+        document = self.db.collection(collection).document(identifier)
+        document.update({field: firestore.DELETE_FIELD})
