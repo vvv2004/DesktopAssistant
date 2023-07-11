@@ -14,9 +14,9 @@ from typing import List
 
 
 class ReminderType(Enum):
-    TASK = 1
-    EVENT = 2
-    REMINDER = 3
+    TASK = 'Task'
+    EVENT = 'Event'
+    REMINDER = 'Reminder'
 
 
 class Reminder:
@@ -89,7 +89,7 @@ class Calendar:
 
             while self._reminders[z].date.month == current_month:
                 reminder = self._reminders[z]
-                print(f'{reminder.type.__str__()}: {reminder.title} - {reminder.description}')
+                print(f'{reminder.type.value}: {reminder.title} - {reminder.description}')
                 print(f'Date: {reminder.date.day:02}:{reminder.date.month:02}:'
                       f'{reminder.date.year:02}\n')
                 z += 1
