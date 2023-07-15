@@ -33,7 +33,6 @@ voice_id = 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN
 
 # ==============================================UTIL FUNCTIONS==========================================================
 
-# TODO - Weather handling method
 
 # A function that opens app that is in the dictionary
 def _open_app(application):
@@ -127,9 +126,9 @@ class Assistant:
 
         elif command.__contains__('weather'):
             if command.__contains__('now'):
-                self.read(self.weather.get_current())
+                self.weather_handler(now=True)
             else:
-                self.read(self.weather.get_today())
+                self.weather_handler()
 
         elif command.__contains__('time'):
             self._tell_time()
@@ -222,6 +221,13 @@ class Assistant:
 
         message = words_to_repeat
         self.read(' '.join(message))
+
+    def weather_handler(self, **kwargs):
+        if kwargs['now'] is None:
+            self.read(self.weather.get_today())
+        else:
+            self.read(self.weather.get_current())
+
 
     # ===============================================HELPER METHODS===================================================
 
