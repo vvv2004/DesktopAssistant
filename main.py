@@ -17,7 +17,6 @@ For now the features that need more work, but are their bases are done are:
 - weather: TODO - more functionality
 - reminders: TODO - delete reminders, migrate, scheduling
 - database: TODO - create Firebase db
-- voice: TODO - make assistant read FEACMe as fichmi
 """
 
 import assistant

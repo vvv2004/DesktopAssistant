@@ -6,6 +6,7 @@ import socket
 import requests as rq
 import datetime
 import rcalendar
+from database import Database
 
 '''
 THIS IS THE APP DICTIONARY
@@ -85,6 +86,7 @@ class Assistant:
         self.engine.setProperty('voice', voice_id)  # Setting the voice with voiceID
         self.weather = Weather()  # Weather assistant init
         self.rcalendar = rcalendar.Calendar()
+        self.db = Database()
 
     # =============================================RUN FUNCTIONS========================================================
 
@@ -197,12 +199,14 @@ class Assistant:
 
     # ==============================================COMMAND METHODS===================================================
 
+    # Handling reminder requests from the user
     def _reminder_handler(self, **kwargs):
         if kwargs.get('new', False) is True:
             self._create_new_reminder()
         elif kwargs.get('show', False) is True:
             self._show_reminders()
 
+    # Handling apps when user wants an app opened
     def _app_handler(self, **kwargs):
         app = kwargs['app']
 
@@ -216,21 +220,23 @@ class Assistant:
 
         self.read(message)
 
+    # Repeating message a user has given
     def _repeat(self, words_to_repeat):
         self.read('OK \n')
 
         message = words_to_repeat
         self.read(' '.join(message))
 
+    # handling weather requests
     def weather_handler(self, **kwargs):
         if kwargs['now'] is None:
             self.read(self.weather.get_today())
         else:
             self.read(self.weather.get_current())
 
-
     # ===============================================HELPER METHODS===================================================
 
+    # Creating new reminder
     def _create_new_reminder(self):
         self.read('Fill the boxes manually to create a reminder')
 
@@ -239,6 +245,7 @@ class Assistant:
         description = input('Reminder description: ')
         date = _process_date(input('Set date /follow the format: (dd.mm.yyyy)/: '))
         is_time_needed = input('Is time needed(y/n): ')
+        time = datetime.time(0, 0)
 
         if is_time_needed == 'y':
             time = _process_date(input('Set time /follow the format: (hh:mm)/: '), processed_data='time')
@@ -246,6 +253,19 @@ class Assistant:
         else:
             self.rcalendar.add_reminder(rtype, title, description, date)
 
+        self.db.save_to_database(
+            {
+                'type': rtype,
+                'title': title,
+                'description': description,
+                'date': date.strftime('%Y.%m.%d'),
+                'time': time.strftime('%H:%M')
+            },
+            'reminders',
+            f'{rtype}: {title}'
+        )
+
+    # Showing all the reminders for given number of month forward
     def _show_reminders(self):
         self.read('Here are your upcoming reminders: ')
         self.rcalendar.check_upcoming_reminders(3)

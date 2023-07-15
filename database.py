@@ -9,8 +9,8 @@ class Database:
         app = firebase_admin.initialize_app(cred)
         self.db = firestore.client()
 
-    def save_to_database(self, dictionary, collection):
-        self.db.collection(collection).set(dictionary)
+    def save_to_database(self, dictionary, collection, document):
+        self.db.collection(collection).document(document).set(dictionary)
 
     def get_from_database(self, collection, identifier):
         reference = self.db.collection(collection).document(identifier)
